@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unitconv"
+version = "1.0.0"
+description = "Grade student unit-conversion worksheet answers"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5"]
+
+[project.scripts]
+unitconv = "unitconv:main"
+
+[tool.setuptools]
+py-modules = ["unitconv"]
+
+[tool.ruff]
+line-length = 110
