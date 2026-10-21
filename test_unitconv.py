@@ -61,7 +61,43 @@ def test_expected_reported_on_incorrect():
 
 def test_cli_exit_codes(capsys):
     assert main(["98.6", "F", "C", "37"]) == 0
+    output = capsys.readouterr().out
+    assert "Conversion" in output
+    assert "98.6 F -> C" in output
+    assert "CORRECT" in output
+
     assert main(["98.6", "F", "C", "40"]) == 1
+    output = capsys.readouterr().out
+    assert "Expected" in output
+    assert "37.0" in output
+    assert "INCORRECT" in output
+
     assert main(["98.6", "F", "C", "x"]) == 2
+    output = capsys.readouterr().out
+    assert "INVALID" in output
+    assert "response is not a number" in output
+
     assert main(["-40", "C", "F", "-40"]) == 0            # negative numbers OK
+    capsys.readouterr()
     assert main(["1"]) == 2
+
+
+def test_cli_interactive_prompts_and_renders_result(monkeypatch, capsys):
+    answers = iter(["98.6", "fahrenheit", "celsius", "37", ""])
+    monkeypatch.setattr("builtins.input", lambda prompt: next(answers))
+
+    assert main([]) == 0
+    output = capsys.readouterr().out
+    assert "Unit Conversion Grader" in output
+    assert "Press Enter at the first prompt to quit" in output
+    assert "CORRECT" in output
+
+
+def test_cli_table_shows_invalid_input_details(capsys):
+    assert main(["abc", "fahrenheit", "celsius", "37"]) == 2
+
+    output = capsys.readouterr().out
+    assert "+-" in output
+    assert "Expected" in output
+    assert "Not available" in output
+    assert "input value is not a number" in output

@@ -5,10 +5,12 @@ Grades a student's unit-conversion answer as **correct**, **incorrect**, or **in
 
     pip install .
     unitconv 98.6 fahrenheit celsius 37     # -> CORRECT
-    unitconv                                # interactive prompts
+    unitconv                                # friendly interactive prompts
     docker run --rm ghcr.io/<org>/unitconv 1 gallons liters 3.8
 
 Exit codes: 0 correct, 1 incorrect, 2 invalid.
+Results are displayed in a table with the conversion, student answer,
+expected value when available, verdict, and any validation details.
 
 Units: kelvin, celsius, fahrenheit, rankine (temperature); liters, tablespoons,
 cubic-inches, cups, cubic-feet, gallons (volume, US customary). Short forms
@@ -42,7 +44,7 @@ Send a JSON request to `POST /api/grade`:
 The response includes a `verdict` (`correct`, `incorrect`, or `invalid`),
 the expected value as a decimal string when available, and an optional
 validation `reason`. Send numeric values as strings to preserve decimal
-precision. The existing `unitconv` command-line interface is unchanged.
+precision. The existing `unitconv` command syntax and exit codes are unchanged.
 
 - Pull requests: lint, tests (Python 3.10 and 3.12), and a Docker build smoke test.
 - Merge to `main`: tests pass, then the image is pushed to GHCR as `latest` and the commit SHA.

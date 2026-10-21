@@ -127,19 +127,52 @@ def grade(value: str, from_unit: str, to_unit: str, response: str) -> Result:
 # ---- command line -----------------------------------------------------------
 _EXIT = {Verdict.CORRECT: 0, Verdict.INCORRECT: 1, Verdict.INVALID: 2}
 _USAGE = """usage: unitconv VALUE FROM_UNIT TO_UNIT RESPONSE
-       unitconv            (no arguments: prompts for each field)
+       unitconv            (interactive mode)
 
-units: kelvin celsius fahrenheit rankine | liters tablespoons cubic-inches cups cubic-feet gallons
-exit code: 0 correct, 1 incorrect, 2 invalid"""
+Grade a student's unit-conversion answer.
+
+examples:
+  unitconv 98.6 fahrenheit celsius 37
+  unitconv 1 gallon liters 4
+
+units:
+  temperature: kelvin, celsius, fahrenheit, rankine
+  volume:      liters, tablespoons, cubic-inches, cups, cubic-feet, gallons
+
+exit codes: 0 correct, 1 incorrect, 2 invalid"""
 
 
-def _report(res: Result) -> None:
-    line = res.verdict.value.upper()
+def _print_table(rows: list[tuple[str, str]]) -> None:
+    headers = ("Field", "Value")
+    normalized_rows = [
+        (label.replace("\n", " "), value.replace("\n", " "))
+        for label, value in rows
+    ]
+    widths = [
+        max(len(headers[index]), *(len(row[index]) for row in normalized_rows))
+        for index in range(len(headers))
+    ]
+    border = f"+-{'-+-'.join('-' * width for width in widths)}-+"
+    print(border)
+    print(f"| {headers[0]:<{widths[0]}} | {headers[1]:<{widths[1]}} |")
+    print(border)
+    for label, value in normalized_rows:
+        print(f"| {label:<{widths[0]}} | {value:<{widths[1]}} |")
+    print(border)
+
+
+def _report(
+    res: Result, value: str, from_unit: str, to_unit: str, response: str
+) -> None:
+    rows = [
+        ("Conversion", f"{value} {from_unit} -> {to_unit}"),
+        ("Your answer", response),
+        ("Expected", str(res.expected) if res.expected is not None else "Not available"),
+        ("Result", res.verdict.value.upper()),
+    ]
     if res.reason:
-        line += f" ({res.reason})"
-    print(line)
-    if res.verdict is Verdict.INCORRECT:
-        print(f"expected: {res.expected}")
+        rows.append(("Details", res.reason))
+    _print_table(rows)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -148,19 +181,25 @@ def main(argv: list[str] | None = None) -> int:
         print(_USAGE)
         return 0
     if len(args) == 4:
-        res = grade(*args)
-        _report(res)
+        value, from_unit, to_unit, response = args
+        res = grade(value, from_unit, to_unit, response)
+        _report(res, value, from_unit, to_unit, response)
         return _EXIT[res.verdict]
     if args:
         print(_USAGE, file=sys.stderr)
         return 2
-    try:  # interactive mode: one question after another until blank/Ctrl-D
+    try:
+        print("Unit Conversion Grader")
+        print("Enter a conversion to check. Press Enter at the first prompt to quit.\n")
         while True:
-            value = input("Input value (blank to quit): ")
+            value = input("Original value: ")
             if not value.strip():
                 return 0
-            fields = [value, input("Input unit: "), input("Target unit: "), input("Student response: ")]
-            _report(grade(*fields))
+            from_unit = input("Convert from (e.g. fahrenheit): ")
+            to_unit = input("Convert to (e.g. celsius): ")
+            response = input("Student's answer: ")
+            res = grade(value, from_unit, to_unit, response)
+            _report(res, value, from_unit, to_unit, response)
             print()
     except EOFError:
         return 0
