@@ -10,13 +10,14 @@ requires-python = ">=3.10"
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.5"]
+web = ["fastapi>=0.115", "uvicorn>=0.30"]
+dev = ["pytest>=8", "ruff>=0.5", "httpx2>=2.16"]
 
 [project.scripts]
 unitconv = "unitconv:main"
 
 [tool.setuptools]
-py-modules = ["unitconv"]
+py-modules = ["unitconv", "unitconv_api"]
 
 [tool.ruff]
 line-length = 110
